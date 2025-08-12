@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:notes/core/utils.dart/extensions.dart';
 import 'package:notes/logic/notes_details/notes_details_bloc.dart';
+import 'package:notes/logic/notes_form/notes_form_bloc.dart';
 import 'package:notes/logic/notes_list/notes_list_bloc.dart';
 import 'package:notes/presentation/widgets/appbar.dart';
 import 'package:notes/presentation/widgets/notes_details_card.dart';
@@ -40,68 +41,78 @@ class _NotesDetailsScreenState extends State<NotesDetailsScreen> {
           if(state is NotesDetailsErrorState){
             return Center(child: Text('Details not available'));
           }else if(state is NotesDetailsSuccessState){
-            return Column(
-              children: [
-                Expanded(
-                  child: NoteDetailsCard(
-                    title: state.note!.title,
-                    createdDate: state.note!.createdAt.toDdMmYyyy(),
-                    content: state.note!.content,
-                  ),
+            return BlocListener<NotesFormBloc,NotesFormBlocState>(
+              listenWhen: (previous, current) => 
+                current is AddNoteSuccessState
+              ,
+              listener: (context,state) {
+                if(state is AddNoteSuccessState){
+                  context.read<NotesDetailsBloc>().add(GetNoteDetailsEvent(id : widget.id!));
+                }
+              },
+              child :Column(
+                  children: [
+                    Expanded(
+                      child: NoteDetailsCard(
+                        title: state.note!.title,
+                        createdDate: state.note!.createdAt.toDdMmYyyy(),
+                        content: state.note!.content,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // Edit Button
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.brown.shade200,
+                              padding: EdgeInsets.symmetric(horizontal: 70.w, vertical: 10.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            onPressed: () {
+                              context.router.push(NotesFormRoute(isFromEdit: true,note: state.note!));
+                            },
+                            child: const Text(
+                              "EDIT",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                                  
+                          // Delete Button
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.brown.shade600,
+                              padding: EdgeInsets.symmetric(horizontal: 60.w, vertical: 10.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            onPressed: () {
+                              context.read<NotesListBloc>().add(DeleteNoteEvent(id: state.note!.id));
+                            },
+                            child: const Text(
+                              "DELETE",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Edit Button
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.brown.shade200,
-                          padding: EdgeInsets.symmetric(horizontal: 70.w, vertical: 10.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        onPressed: () {
-                          context.router.push(NotesFormRoute(isFromEdit: true,note: state.note!));
-                        },
-                        child: const Text(
-                          "EDIT",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                              
-                      // Delete Button
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.brown.shade600,
-                          padding: EdgeInsets.symmetric(horizontal: 60.w, vertical: 10.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        onPressed: () {
-                          context.read<NotesListBloc>().add(DeleteNoteEvent(id: state.note!.id));
-                        },
-                        child: const Text(
-                          "DELETE",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
             );
           }else{
             return CircularProgressIndicator(
