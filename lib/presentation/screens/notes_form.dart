@@ -43,27 +43,28 @@ class _NotesFormScreenState extends State<NotesFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar:CustomAppBar(
-        title: 'Notes',
+        title: 'Add Note',
         showBackButton: true,
       ),
-      body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 14.w,vertical: 10.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-        child: BlocListener<NotesFormBloc,NotesFormBlocState>(
-          listener: (context,state) async {
-             if(state is AddNoteErrorState)  {
-              await Fluttertoast.showToast(msg: 'Something went wrong');
-             }else if(state is AddNoteSuccessState){
-              context.read<NotesListBloc>().add(FetchNotesEvent());
-              context.router.pop();
-             }
-          },
-          child: Stack(
-              children : [ 
-                Column(
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 14.w,vertical: 10.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+              child: BlocListener<NotesFormBloc,NotesFormBlocState>(
+                listener: (context,state) async {
+                   if(state is AddNoteErrorState)  {
+                    await Fluttertoast.showToast(msg: 'Something went wrong');
+                   }else if(state is AddNoteSuccessState){
+                    context.read<NotesListBloc>().add(FetchNotesEvent());
+                    context.router.pop();
+                   }
+                },
+                child: Column(
                 spacing: 10.h,
                 children: [
                   TextField(
@@ -106,44 +107,48 @@ class _NotesFormScreenState extends State<NotesFormScreen> {
                     },
                   )
                 ],
+                                  ),
               ),
-              Positioned(
-                right: 16,
-                left: 16,
-                bottom: 16,
-                child: GestureDetector(
-                  onTap: () async{
-                    if(titleTEC.text != null || contentTEC.text != null){
-                      if(widget.isFromEdit == false){
-                        context.read<NotesFormBloc>().add(AddNoteEvent(title: titleTEC.text!, content: contentTEC.text!));
-                      }else{
-                        context.read<NotesFormBloc>().add(EditNoteEvent(note: widget.note!));
-                      }
-                    }else{
-                      await Fluttertoast.showToast(msg: 'Note is blank');
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                            decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: Center(
-                  child : Text(
-                    'Save',
-                     style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                     ),
-                  ),
-                            ),
-                          ),
-                ),)
-              ]
             ),
-        ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal : 16.w,vertical: 20.h),
+            child: GestureDetector(
+              onTap: () async{
+                if(titleTEC.text != null || contentTEC.text != null){
+                  if(widget.isFromEdit == false){
+                    context.read<NotesFormBloc>().add(AddNoteEvent(title: titleTEC.text!, content: contentTEC.text!));
+                  }else{
+                    final updatedNote = widget.note!.copyWith(
+                      title: titleTEC.text.trim(),
+                      content: contentTEC.text.trim(),
+                    );
+                    context.read<NotesFormBloc>().add(EditNoteEvent(note: updatedNote));
+                  }
+                }else{
+                  await Fluttertoast.showToast(msg: 'Note is blank');
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                        decoration: BoxDecoration(
+              color: Colors.brown.shade200,
+              borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        child: Center(
+              child : Text(
+                'Save',
+                 style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                 ),
+              ),
+                        ),
+                      ),
+            ),
+          )
+        ],
       ),
     );
   }

@@ -46,8 +46,13 @@ class NotesFormBloc extends Bloc<NotesFormEvent,NotesFormBlocState>{
   )async{
     try{
       final result = await networkApiService.updateNote(updatedNote : event.note);
-      await Fluttertoast.showToast(msg: 'Note updated');
-      emit(AddNoteSuccessState());
+      if(result == true){
+        await Fluttertoast.showToast(msg: 'Note updated');
+        emit(AddNoteSuccessState());
+      }else{
+        await Fluttertoast.showToast(msg: 'Something went wrong');
+      }
+      
     }catch(e){
       rethrow;
     }

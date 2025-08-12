@@ -37,12 +37,15 @@ class NetworkApiService {
     return _notes.firstWhere((note) => note.id == id);
   }
 
-  Future<void> updateNote({required NoteModel updatedNote}) async {
-    final index = _notes.indexWhere((n) => n.id == updatedNote.id);
-    if (index != -1) {
-      _notes[index] = updatedNote.copyWith(updatedAt: DateTime.now());
-    }
+  Future<bool> updateNote({required NoteModel updatedNote}) async {
+  final index = _notes.indexWhere((n) => n.id == updatedNote.id);
+  if (index != -1) {
+    _notes[index] = updatedNote.copyWith(updatedAt: DateTime.now());
+    return true;
   }
+  return false;
+}
+
 
   Future<void> deleteNote({required String id}) async {
     _notes.removeWhere((n) => n.id == id);

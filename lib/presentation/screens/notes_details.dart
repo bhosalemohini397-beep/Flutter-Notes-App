@@ -2,10 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:notes/core/constants/app_colors.dart';
 import 'package:notes/core/utils.dart/extensions.dart';
 import 'package:notes/logic/notes_details/notes_details_bloc.dart';
+import 'package:notes/logic/notes_list/notes_list_bloc.dart';
 import 'package:notes/presentation/widgets/appbar.dart';
+import 'package:notes/presentation/widgets/notes_details_card.dart';
+import 'package:notes/routes/app_routes_barrel.gr.dart';
 
 @RoutePage()
 class NotesDetailsScreen extends StatefulWidget {
@@ -30,49 +32,83 @@ class _NotesDetailsScreenState extends State<NotesDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: widget.title!,
+        title: 'Note Details',
         showBackButton: true,
       ),
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        margin: EdgeInsets.symmetric(horizontal: 14.w,vertical: 10.h),
-        padding: EdgeInsets.symmetric(horizontal: 16.w,vertical: 10.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: BlocBuilder<NotesDetailsBloc,NotesDetailsBlocState>(
-          builder: (context,state){
-            if(state is NotesDetailsErrorState){
-              return Center(child: Text('Details not available'));
-            }else if(state is NotesDetailsSuccessState){
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 15.h,
-                children: [
-                  Text(
-                    'Created on : ${state.note!.createdAt.toDdMmYyyy()}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.black.withAlpha(80),
-                    ),
+      body: BlocBuilder<NotesDetailsBloc,NotesDetailsBlocState>(
+        builder: (context,state){
+          if(state is NotesDetailsErrorState){
+            return Center(child: Text('Details not available'));
+          }else if(state is NotesDetailsSuccessState){
+            return Column(
+              children: [
+                Expanded(
+                  child: NoteDetailsCard(
+                    title: state.note!.title,
+                    createdDate: state.note!.createdAt.toDdMmYyyy(),
+                    content: state.note!.content,
                   ),
-                  Text(
-                    state.note!.content,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: AppColors.textPrimary,
-                    ),
-                  )
-                ],
-              );
-            }else{
-              return CircularProgressIndicator(
-                color: Colors.brown,
-              );
-            }
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Edit Button
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.brown.shade200,
+                          padding: EdgeInsets.symmetric(horizontal: 70.w, vertical: 10.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        onPressed: () {
+                          context.router.push(NotesFormRoute(isFromEdit: true,note: state.note!));
+                        },
+                        child: const Text(
+                          "EDIT",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                              
+                      // Delete Button
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.brown.shade600,
+                          padding: EdgeInsets.symmetric(horizontal: 60.w, vertical: 10.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        onPressed: () {
+                          context.read<NotesListBloc>().add(DeleteNoteEvent(id: state.note!.id));
+                        },
+                        child: const Text(
+                          "DELETE",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            );
+          }else{
+            return CircularProgressIndicator(
+              color: Colors.brown,
+            );
           }
-        )
+        }
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:notes/data/pojo/note_model.dart';
 import 'package:notes/data/services/network_api_service.dart';
+import 'package:notes/routes/app_routes_barrel.gr.dart';
 
 part 'notes_list_event.dart';
 part 'notes_list_state.dart';
@@ -26,6 +27,7 @@ class NotesListBloc extends Bloc<NotesListEvent,NotesListBlocState>{
     Emitter<NotesListBlocState> emit,
   ) async {
     try{
+      debugPrint('fetch list');
       final result = await networkApiService.fetchNotes();
 
       if(result.isNotEmpty){
@@ -45,7 +47,7 @@ class NotesListBloc extends Bloc<NotesListEvent,NotesListBlocState>{
     try{
       final result = await networkApiService.deleteNote(id : event.id);
       await Fluttertoast.showToast(msg: 'Note deleted');
-      add(FetchNotesEvent());
+      router.push(NotesListRoute());
     }catch(e){
       rethrow;
     }
